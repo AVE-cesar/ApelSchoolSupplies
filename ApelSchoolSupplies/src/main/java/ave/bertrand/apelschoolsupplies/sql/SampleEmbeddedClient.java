@@ -9,31 +9,55 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import ave.bertrand.apelschoolsupplies.Consts;
+import ave.bertrand.apelschoolsupplies.dao.RecordRepository;
+import ave.bertrand.apelschoolsupplies.model.Record;
 import ave.bertrand.apelschoolsupplies.model.Request;
 
+@Component
 public class SampleEmbeddedClient {
 
 	private static Connection conn = null;;
 
+	@Autowired
+	private RecordRepository recordRepository;
+
 	public SampleEmbeddedClient() throws Exception {
 
 		Class.forName(Consts.JDBC_DRIVER);
-		createConnection();
+
+		// createConnection();
+	}
+
+	@PostConstruct
+	public void initIt() {
+		// FIXME pourquoi sans ce PostConstruct, recordRepository reste à null
+		System.out.println("@PostConstruct");
+		System.out.println(recordRepository.count());
+
+		Iterable<Record> records = recordRepository.findAll();
+		for (Record record : records) {
+			System.out.println(record);
+		}
 	}
 
 	private Connection getValidConnection() {
-		System.out.println("On doit tester la connexion db");
+
 		try {
 			if (conn != null && conn.isValid(30 * 1000)) {
-				System.out.println("La connexion db était toujours valide.");
+
 				return conn;
 			} else {
 				// refresh it
 				closeConnection();
 				conn = null;
 				createConnection();
-				System.out.println("La connexion db était invalide, on l'a refaite.");
+
 				return conn;
 			}
 		} catch (SQLException e) {
@@ -53,7 +77,7 @@ public class SampleEmbeddedClient {
 	}
 
 	public void closeConnection() {
-		if (conn == null) {
+		if (conn != null) {
 			try {
 				conn.close();
 			} catch (SQLException e) {
@@ -103,7 +127,6 @@ public class SampleEmbeddedClient {
 			int mainId = rs.getInt("ID");
 			String classNumber = rs.getString("CLASSNUMBER");
 			String studentName = rs.getString("STUDENTNAME");
-			String gender = rs.getString("GENDER");
 			String kitType = rs.getString("KITTYPE");
 			String amount = rs.getString("AMOUNT");
 			String receivedDate = rs.getString("RECEIVEDDATE");
@@ -114,8 +137,8 @@ public class SampleEmbeddedClient {
 			String note = rs.getString("NOTE");
 			boolean enabled = rs.getBoolean("ENABLED");
 
-			Request request = new Request(mainId, 0, classNumber, studentName, gender, kitType, amount, receivedDate,
-					replyTos, messageId, note, enabled);
+			Request request = new Request(mainId, 0, classNumber, studentName, kitType, amount, receivedDate, replyTos,
+					messageId, note, enabled);
 			request.setPayed(payed);
 			request.setSent(sent);
 
@@ -242,29 +265,25 @@ public class SampleEmbeddedClient {
 					// FIXME ne pas ajouter si déjà présent
 					String sqlSSelect = "SELECT count(*) as NB FROM sample_table where messageId = '"
 							+ request.getMessageID() + "'";
+					System.out.println(sqlSSelect);
 					int row = db.count(sqlSSelect);
 
 					if (row == 0) {
-						String sql = "INSERT INTO sample_table(messageId, classNumber, studentName, gender, kitType, amount, receivedDate, replyTos, enabled) VALUES('"
+						String sql = "INSERT INTO sample_table(messageId, classNumber, studentName, kitType, amount, receivedDate, replyTos, enabled) VALUES('"
 								+ request.getMessageID() + "', '" + request.getClassNumber() + "', '"
-								+ request.getStudentName().replaceAll("'", "''") + "', '" + request.getGender() + "', '"
-								+ request.getKitType() + "', '" + request.getAmount() + "', '"
-								+ request.getReceivedDate() + "', '" + request.getReplyTos() + "', "
-								+ request.isEnabled() + ")";
-						System.out.println(sql);
-						db.update(sql);
-
-						sql = "INSERT INTO statut_table(messageId) VALUES('" + request.getMessageID() + "')";
+								+ request.getStudentName().replaceAll("'", "''") + "', '" + request.getKitType()
+								+ "', '" + request.getAmount() + "', '" + request.getReceivedDate() + "', '"
+								+ request.getReplyTos() + "', " + request.isEnabled() + ")";
 						System.out.println(sql);
 						db.update(sql);
 
 						nbInsert++;
+					} else {
+						System.out.println("On n'ajoute pas cet email car il est déjà présent !");
 					}
 				}
 				System.out.println("On a ajouté: " + nbInsert);
 			}
-
-			data = db.reloadDataFromDB();
 		} catch (SQLException ex3) {
 			ex3.printStackTrace();
 		} finally {
@@ -274,8 +293,29 @@ public class SampleEmbeddedClient {
 		return data;
 	}
 
-	public List<Request> reloadDataFromDB() throws SQLException {
-		return this.queryRequests(
-				"SELECT a.id as ID, a.messageId as MESSAGEID, a.classNumber as CLASSNUMBER, a.studentName as STUDENTNAME, a.gender as GENDER, a.kitType as KITTYPE, a.amount as AMOUNT, a.receivedDate as RECEIVEDDATE, a.replyTos as REPLYTOS, a.enabled as ENABLED, b.payed as PAYED, b.sent as SENT, a.note as NOTE FROM sample_table a, statut_table b WHERE a.messageId = b.messageId");
+	public static List<Request> reloadDataFromDB() {
+		SampleEmbeddedClient db = null;
+		List<Request> data = null;
+
+		try {
+			db = new SampleEmbeddedClient();
+			data = db.reloadData();
+
+		} catch (SQLException ex3) {
+			ex3.printStackTrace();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			db.closeConnection();
+		}
+		System.out.println("Fin de l'ajout en DB");
+		return data;
 	}
-} // class Testdb
+
+	private List<Request> reloadData() throws SQLException {
+
+		return this.queryRequests(
+				"SELECT a.id as ID, a.messageId as MESSAGEID, a.classNumber as CLASSNUMBER, a.studentName as STUDENTNAME, a.kitType as KITTYPE, a.amount as AMOUNT, a.receivedDate as RECEIVEDDATE, a.replyTos as REPLYTOS, a.enabled as ENABLED, a.payed as PAYED, a.sent as SENT, a.note as NOTE FROM sample_table a");
+	}
+}

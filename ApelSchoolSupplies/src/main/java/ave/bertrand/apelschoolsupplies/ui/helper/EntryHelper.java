@@ -59,7 +59,7 @@ public final class EntryHelper {
 		SampleEmbeddedClient db = null;
 		try {
 			db = new SampleEmbeddedClient();
-			db.update("UPDATE statut_table SET payed = TRUE WHERE messageId = '" + messageId + "';");
+			db.update("UPDATE sample_table SET payed = TRUE WHERE messageId = '" + messageId + "';");
 
 			List<Request> requests = db.reloadDataFromDB();
 			parent.getModel().setEntries(requests);
@@ -118,7 +118,7 @@ public final class EntryHelper {
 		SampleEmbeddedClient db = null;
 		try {
 			db = new SampleEmbeddedClient();
-			db.update("UPDATE statut_table SET sent = TRUE WHERE messageId = '" + messageId + "';");
+			db.update("UPDATE sample_table SET sent = TRUE WHERE messageId = '" + messageId + "';");
 
 			List<Request> requests = db.reloadDataFromDB();
 			parent.getModel().setEntries(requests);
@@ -136,8 +136,7 @@ public final class EntryHelper {
 	/**
 	 * Edits the entry.
 	 *
-	 * @param parent
-	 *            parent component
+	 * @param parent parent component
 	 */
 	public static void editEntry(ApelManagerJFrame parent) {
 		int selectedRow = ApelManagerJFrame.getInstance().getEntryTable().getSelectedRow();
@@ -160,8 +159,7 @@ public final class EntryHelper {
 	/**
 	 * Gets the selected entry.
 	 *
-	 * @param parent
-	 *            the parent frame
+	 * @param parent the parent frame
 	 * @return the entry or null
 	 */
 	public static Request getSelectedEntry(ApelManagerJFrame parent) {
@@ -176,10 +174,8 @@ public final class EntryHelper {
 	/**
 	 * Copy entry field value to clipboard.
 	 *
-	 * @param parent
-	 *            the parent frame
-	 * @param content
-	 *            the content to copy
+	 * @param parent  the parent frame
+	 * @param content the content to copy
 	 */
 	public static void copyEntryField(ApelManagerJFrame parent, String content) {
 		try {
@@ -220,7 +216,6 @@ public final class EntryHelper {
 		int mainId = Integer.parseInt(model.getValueAt(selectedRow, DataModel.MAINID_COLUMN).toString());
 		String classNumber = model.getValueAt(selectedRow, DataModel.CLASSNUMBER_COLUMN).toString();
 		String studentName = model.getValueAt(selectedRow, DataModel.STUDENT_COLUMN).toString();
-		String gender = model.getValueAt(selectedRow, DataModel.GENDER_COLUMN).toString();
 		String kitType = model.getValueAt(selectedRow, DataModel.KITTYPE_COLUMN).toString();
 		String amount = model.getValueAt(selectedRow, DataModel.AMOUNT_COLUMN).toString();
 		String replyTos = model.getValueAt(selectedRow, DataModel.REPLYTO_COLUMN).toString();
@@ -228,8 +223,8 @@ public final class EntryHelper {
 				: model.getValueAt(selectedRow, DataModel.NOTE_COLUMN).toString();
 		boolean enabled = Boolean.parseBoolean(model.getValueAt(selectedRow, DataModel.ENABLED_COLUMN).toString());
 
-		Request request = new Request(mainId, -1, classNumber, studentName, gender, kitType, amount, null, replyTos,
-				null, note, enabled);
+		Request request = new Request(mainId, -1, classNumber, studentName, kitType, amount, null, replyTos, null, note,
+				enabled);
 		return request;
 	}
 }

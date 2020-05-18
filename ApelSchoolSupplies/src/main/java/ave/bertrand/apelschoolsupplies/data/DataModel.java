@@ -18,21 +18,20 @@ public class DataModel extends AbstractTableModel {
 	private static volatile DataModel INSTANCE;
 
 	public static int STUDENT_COLUMN = 0;
-	public static int GENDER_COLUMN = 1;
-	public static int KITTYPE_COLUMN = 2;
-	public static int AMOUNT_COLUMN = 3;
-	public static int CLASSNUMBER_COLUMN = 4;
-	public static int RECEIVEDDATE_COLUMN = 5;
-	public static int REPLYTO_COLUMN = 6;
-	public static int MESSAGEID_COLUMN = 7;
-	public static int VALIDATED_COLUMN = 8;
-	public static int REPLIED_COLUMN = 9;
-	public static int NOTE_COLUMN = 10;
-	public static int ENABLED_COLUMN = 11;
-	public static int MAINID_COLUMN = 12;
+	public static int KITTYPE_COLUMN = 1;
+	public static int AMOUNT_COLUMN = 2;
+	public static int CLASSNUMBER_COLUMN = 3;
+	public static int RECEIVEDDATE_COLUMN = 4;
+	public static int REPLYTO_COLUMN = 5;
+	public static int MESSAGEID_COLUMN = 6;
+	public static int VALIDATED_COLUMN = 7;
+	public static int REPLIED_COLUMN = 8;
+	public static int NOTE_COLUMN = 9;
+	public static int ENABLED_COLUMN = 10;
+	public static int MAINID_COLUMN = 11;
 
-	private String[] columnNames = new String[] { "Nom", "Sexe", "Kit", "Montant", "Classe", "Date de réception",
-			"Répondre à", "Clé unique", "Validé", "Répondu", "Note", "Actif", "Id" };
+	private String[] columnNames = new String[] { "Nom", "Kit", "Montant", "Classe", "Date de réception", "Répondre à",
+			"Clé unique", "Validé", "Répondu", "Note", "Actif", "Id" };
 
 	private List<Request> requests = new ArrayList();
 
@@ -70,8 +69,7 @@ public class DataModel extends AbstractTableModel {
 	/**
 	 * Sets list of entries.
 	 *
-	 * @param entries
-	 *            entries
+	 * @param entries entries
 	 */
 	public final void setEntries(final List<Request> requests) {
 		System.out.println("On fixe les entrées du model");
@@ -91,8 +89,7 @@ public class DataModel extends AbstractTableModel {
 	/**
 	 * Sets the modified state of the data model.
 	 *
-	 * @param modified
-	 *            modified state
+	 * @param modified modified state
 	 */
 	public final void setModified(final boolean modified) {
 		this.modified = modified;
@@ -123,8 +120,7 @@ public class DataModel extends AbstractTableModel {
 	/**
 	 * Gets entry index by title.
 	 *
-	 * @param title
-	 *            entry title
+	 * @param title entry title
 	 * @return entry index
 	 */
 	public int getEntryIndexByTitle(String title) {
@@ -135,8 +131,7 @@ public class DataModel extends AbstractTableModel {
 	/**
 	 * Gets entry by title.
 	 *
-	 * @param title
-	 *            entry title
+	 * @param title entry title
 	 * @return entry
 	 */
 	public Request getEntryByTitle(String title) {
@@ -259,6 +254,25 @@ public class DataModel extends AbstractTableModel {
 					db.closeConnection();
 				}
 			}
+		} else if (columnIndex == REPLYTO_COLUMN) {
+
+			if (aValue != null) {
+
+				SampleEmbeddedClient db = null;
+				try {
+					db = new SampleEmbeddedClient();
+					db.update("UPDATE sample_table SET replytos = '" + aValue.toString() + "' WHERE Id = '"
+							+ request.getMainId() + "';");
+
+					List<Request> requests = db.reloadDataFromDB();
+					this.setEntries(requests);
+
+				} catch (Exception ex1) {
+					ex1.printStackTrace();
+				} finally {
+					db.closeConnection();
+				}
+			}
 		}
 	}
 
@@ -279,8 +293,6 @@ public class DataModel extends AbstractTableModel {
 
 		if (columnIndex == STUDENT_COLUMN) {
 			value = this.requests.get(rowIndex).getStudentName();
-		} else if (columnIndex == GENDER_COLUMN) {
-			value = this.requests.get(rowIndex).getGender();
 		} else if (columnIndex == KITTYPE_COLUMN) {
 			value = this.requests.get(rowIndex).getKitType();
 		} else if (columnIndex == AMOUNT_COLUMN) {

@@ -204,15 +204,17 @@ public class EmailUtils {
 			System.out.println("Message " + (i + 1) + " avant parsing: " + subject);
 
 			// on a trouvé dans un sujet, ceci: 3-POIRIER--DUCASTELLE Laure-Fille-Kit
+			// en 2020, il n'y a plus fille et garçon
+			int nbTirets = 3;
 			// Droitier- 50 € Bloc A
 			// le double - pose problème
 			subject = subject.replace("--", " ");
 			int nb = StringUtils.countMatches(subject, "-");
 
-			if (nb >= 4 && !subject.toUpperCase().startsWith("RE:")) {
+			if (nb >= nbTirets && !subject.toUpperCase().startsWith("RE:")) {
 				String subjectParts[] = subject.split("-");
 
-				if (subjectParts.length != 5) {
+				if (subjectParts.length != (nbTirets + 1)) {
 
 					// il y a un tiret dans le nom
 					// on le remplace par un blanc entre la classe et le sexe
@@ -221,8 +223,8 @@ public class EmailUtils {
 					subject = subject.substring(0, index) + " " + subject.substring(index + 1);
 
 					subjectParts = subject.split("-");
-					if (subjectParts.length != 5) {
-						throw new Exception(subject + " doit avoir seulement 4 tirets !");
+					if (subjectParts.length != (nbTirets + 1)) {
+						throw new Exception(subject + " doit avoir seulement " + nbTirets + " tirets !");
 					}
 				}
 
@@ -235,21 +237,21 @@ public class EmailUtils {
 					number = Integer.parseInt(classNumber);
 				}
 				String studentName = subjectParts[1].trim();
-				String gender = subjectParts[2].trim();
-				String kitType = subjectParts[3].trim();
-				String amount = subjectParts[4].trim();
+				String kitType = subjectParts[2].trim();
+				String amount = subjectParts[3].trim();
 
 				String pattern = "yyyy-MM-dd HH:mm:ss";
 				SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-				Request request = new Request(-1, (i + 1), "" + number, studentName, gender, kitType, amount,
+				Request request = new Request(-1, (i + 1), "" + number, studentName, kitType, amount,
 						simpleDateFormat.format(receivedDate), replyTos[0].toString(), messageID, "", true);
 
 				System.out.println(request.toString());
 
 				requests.add(request);
 			} else {
-				// message ecarté
-				System.err.println(subject + " " + receivedDate);
+				// message ecarté car commence par RE: ou on ne trouve pas au moins les 4
+				// parties
+				System.err.println("ATTENTION, Message écarté: " + subject + " " + receivedDate + " nb parties: " + nb);
 			}
 		}
 		inbox.close(false);

@@ -2,12 +2,10 @@ package ave.bertrand.apelschoolsupplies.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -30,18 +28,16 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import javax.swing.table.TableRowSorter;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.stereotype.Component;
 
+import ave.bertrand.apelschoolsupplies.Application;
 import ave.bertrand.apelschoolsupplies.data.DataModel;
-import ave.bertrand.apelschoolsupplies.model.Request;
 import ave.bertrand.apelschoolsupplies.ui.action.AbstractMenuAction;
 import ave.bertrand.apelschoolsupplies.ui.action.CloseListener;
 import ave.bertrand.apelschoolsupplies.ui.action.MenuActionType;
 import ave.bertrand.apelschoolsupplies.ui.helper.EntryHelper;
 
-@SpringBootApplication
+@Component
 public class ApelManagerJFrame extends JFrame {
 	private static final long serialVersionUID = -4114209356464342368L;
 
@@ -80,20 +76,6 @@ public class ApelManagerJFrame extends JFrame {
 	private final DataModel model = DataModel.getInstance();
 	private final StatusPanel statusPanel;
 	private volatile boolean processing = false;
-
-	public static List<Request> emailsRequests = null;
-
-	private static ConfigurableApplicationContext ctx;
-
-	public static void main(String[] args) {
-
-		ctx = new SpringApplicationBuilder(ApelManagerJFrame.class).headless(false).run(args);
-
-		EventQueue.invokeLater(() -> {
-			ApelManagerJFrame ex = ctx.getBean(ApelManagerJFrame.class);
-			ex.setVisible(true);
-		});
-	}
 
 	/**
 	 * Création de la fenêtre principale en passant les paramètres de la ligne de
@@ -304,6 +286,7 @@ public class ApelManagerJFrame extends JFrame {
 		this.fileMenu.add(MenuActionType.IMPORT_EMAILS.getAction());
 		this.fileMenu.add(MenuActionType.LOAD_DB.getAction());
 		this.fileMenu.add(MenuActionType.EXPORT_XLSX.getAction());
+		this.fileMenu.add(MenuActionType.REGISTRATIONSHEET_XLSX.getAction());
 
 		this.fileMenu.addSeparator();
 		this.fileMenu.add(MenuActionType.EXIT.getAction());
@@ -317,6 +300,7 @@ public class ApelManagerJFrame extends JFrame {
 		this.toolBar.add(MenuActionType.LOAD_DB.getAction());
 		this.toolBar.addSeparator();
 		this.toolBar.add(MenuActionType.EXPORT_XLSX.getAction());
+		this.toolBar.add(MenuActionType.REGISTRATIONSHEET_XLSX.getAction());
 		this.toolBar.addSeparator();
 		this.toolBar.add(MenuActionType.VALIDATE_ENTRY.getAction());
 		this.toolBar.add(MenuActionType.REPLYTO_ENTRY.getAction());
@@ -329,7 +313,7 @@ public class ApelManagerJFrame extends JFrame {
 	}
 
 	public static ApelManagerJFrame getInstance(String[] args) {
-		return ctx.getBean(ApelManagerJFrame.class);
+		return Application.getSpringContext().getBean(ApelManagerJFrame.class);
 	}
 
 	public JTable getEntryTable() {

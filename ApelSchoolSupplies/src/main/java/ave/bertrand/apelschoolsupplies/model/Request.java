@@ -9,7 +9,6 @@ public class Request {
 	private int position;
 	private String classNumber;
 	private String studentName;
-	private String gender;
 	private String kitType;
 	private String amount;
 
@@ -24,14 +23,13 @@ public class Request {
 
 	private boolean enabled = false;
 
-	public Request(int mainId, int position, String number, String studentName, String gender, String kitType,
-			String amount, String receivedDate, String replyTos, String messageID, String note, boolean enabled) {
+	public Request(int mainId, int position, String number, String studentName, String kitType, String amount,
+			String receivedDate, String replyTos, String messageID, String note, boolean enabled) {
 		this.setMainId(mainId);
 
 		this.position = position;
 		this.classNumber = number;
 		this.studentName = studentName;
-		this.gender = gender;
 		this.kitType = kitType;
 		this.amount = amount;
 
@@ -93,14 +91,6 @@ public class Request {
 		this.studentName = studentName;
 	}
 
-	public String getGender() {
-		return gender;
-	}
-
-	public void setGender(String gender) {
-		this.gender = gender;
-	}
-
 	public String getKitType() {
 		return kitType;
 	}
@@ -118,12 +108,12 @@ public class Request {
 	}
 
 	public String getInitialSubject() {
-		return classNumber + " - " + studentName + " - " + gender + " - " + kitType + " - " + amount;
+		return classNumber + " - " + studentName + " - " + kitType + " - " + amount;
 	}
 
 	public String toString() {
-		return position + ";" + classNumber + ";" + studentName + ";" + gender + ";" + kitType + ";" + amount + ";"
-				+ receivedDate + ";" + this.replyTos + ";" + this.messageID;
+		return position + ";" + classNumber + ";" + studentName + ";" + kitType + ";" + amount + ";" + receivedDate
+				+ ";" + this.replyTos + ";" + this.messageID;
 	}
 
 	public boolean isPayed() {

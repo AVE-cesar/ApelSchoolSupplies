@@ -9,17 +9,17 @@ import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
-import ave.bertrand.apelschoolsupplies.Consts;
-import ave.bertrand.apelschoolsupplies.excel.ExcelExport;
+import ave.bertrand.apelschoolsupplies.Application;
 import ave.bertrand.apelschoolsupplies.model.Request;
+import ave.bertrand.apelschoolsupplies.service.MainService;
 import ave.bertrand.apelschoolsupplies.sql.SampleEmbeddedClient;
 import ave.bertrand.apelschoolsupplies.ui.ApelManagerJFrame;
 import ave.bertrand.apelschoolsupplies.ui.MessageDialog;
 import ave.bertrand.apelschoolsupplies.ui.helper.EntryHelper;
 import ave.bertrand.apelschoolsupplies.ui.helper.FileHelper;
-import ave.bertrand.apelschoolsupplies.util.EmailUtils;
 
 /**
  * Enumeration which holds menu actions and related data.
@@ -35,15 +35,9 @@ public enum MenuActionType {
 
 		@Override
 		public void actionPerformed(ActionEvent ev) {
-			EmailUtils client = new EmailUtils();
+			MainService mainService = Application.getSpringContext().getBean(MainService.class);
 
-			try {
-				ApelManagerJFrame.emailsRequests = client.scan(Consts.SMTP_HOST, Consts.SMTP_LOGIN,
-						Consts.SMTP_PASSWORD);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			mainService.importEmailsFromSmtpServer();
 		}
 	}),
 
@@ -54,8 +48,9 @@ public enum MenuActionType {
 		@Override
 		public void actionPerformed(ActionEvent ev) {
 			try {
-				List<Request> requestsDB = SampleEmbeddedClient.saveDataToDB(ApelManagerJFrame.emailsRequests, false);
+				List<Request> requestsDB = SampleEmbeddedClient.reloadDataFromDB();
 
+				// FIXME supprimer la classe FileHelper
 				FileHelper.doOpenFile(requestsDB, ApelManagerJFrame.getInstance());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -69,16 +64,31 @@ public enum MenuActionType {
 
 				@Override
 				public void actionPerformed(ActionEvent ev) {
-					SampleEmbeddedClient db = null;
-					try {
-						db = new SampleEmbeddedClient();
-						ExcelExport.exportToXLSX(db.reloadDataFromDB());
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} finally {
-						db.closeConnection();
+					MainService mainService = Application.getSpringContext().getBean(MainService.class);
+
+					mainService.exportAsXlsxFile();
+				}
+			}),
+
+	REGISTRATIONSHEET_XLSX("jpass.menu.registration_sheet_action",
+			new AbstractMenuAction("Feuille d'émargement", MessageDialog.getIcon("registrationsheet"), null, true) {
+				private static final long serialVersionUID = 1768189708479045321L;
+
+				@Override
+				public void actionPerformed(ActionEvent ev) {
+
+					Object[] possibilities = { "6", "5", "4", "3" };
+					String answer = (String) JOptionPane.showInputDialog(ApelManagerJFrame.getInstance(),
+							"Choisir une classe:", "Feuille d'émargement", JOptionPane.PLAIN_MESSAGE,
+							MessageDialog.getIcon("export"), possibilities, "6ième");
+
+					// If a string was returned, say so.
+					if ((answer != null) && (answer.length() > 0)) {
+						MainService mainService = Application.getSpringContext().getBean(MainService.class);
+
+						mainService.exportAsRegistrationSheet(answer);
 					}
+
 				}
 			}),
 
